@@ -69,7 +69,7 @@ class WorkTimerApp(MDApp):
 
     def check_for_updates(self):
         """Проверяет наличие новой версии на GitHub."""
-        remote_version_url = "https://raw.githubusercontent.com/dmitrimailov/worktime/main/version.json"
+        remote_version_url = "https://raw.githubusercontent.com/dmitrimailov/worktime/main/version.json" # Укажите правильный путь к файлу
         try:
             response = requests.get(remote_version_url, timeout=5)
             response.raise_for_status()  # Вызовет ошибку для плохих статусов (404, 500 и т.д.)

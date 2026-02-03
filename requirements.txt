@@ -1,0 +1,12 @@
+kivy==2.3.0
+# Установка KivyMD напрямую из master-ветки для получения последних исправлений
+https://github.com/kivymd/KivyMD/archive/master.zip
+requests
+packaging
+buildozer
+# Зависимости для KivyMD 2.0.1+
+materialyoucolor
+pillow
+exceptiongroup
+asyncgui
+asynckivy

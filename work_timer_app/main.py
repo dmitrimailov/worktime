@@ -9,6 +9,7 @@ from kivy.clock import mainthread
 from kivy.lang import Builder
 from kivymd.app import MDApp
 
+
 # --- Добавляем импорты для всех виджетов KivyMD, используемых в .kv файле ---
 # Это необходимо, чтобы Kivy знал о классах до загрузки worktimer.kv
 from kivymd.uix.boxlayout import MDBoxLayout

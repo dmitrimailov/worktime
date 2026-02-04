@@ -1,32 +1,44 @@
-# Имя рабочего процесса, которое будет отображаться на GitHub
-name: Build Android APK
-
-# Событие, которое запускает этот процесс (в данном случае - отправка кода в любую ветку)
-on: [push]
+name: Android Build
+on: [push, pull_request]
 
 jobs:
   build:
-    # Указываем, что сборка будет происходить на последней версии Ubuntu
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # Используем стабильную версию 22.04
 
     steps:
-      # 1. Скачиваем исходный код вашего репозитория
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 2. Основное действие: запускаем сборку с помощью Buildozer
-      # Это готовый экшен, который сам установит Java, Android SDK/NDK и все зависимости
-      - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          # Команда, которую нужно выполнить. Собираем debug-версию APK
-          command: buildozer android debug
+          python-version: '3.11'
 
-      # 3. Сохраняем результат (готовый APK)
-      # После сборки APK можно будет скачать со страницы Actions
-      - name: Upload artifacts
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip autoconf libtool pkg-config zlib1g-dev \
+          libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev \
+          gettext libgdbm-dev libreadline-dev libbz2-dev sqlite3 libsqlite3-dev \
+          tk-dev bzip2 lzma liblzma-dev libgl1-mesa-dev libgles2-mesa-dev patch
+          pip install --upgrade pip
+          pip install "buildozer>=1.5.0" "Cython<3.0" "sh<2.0"
+
+      - name: Build with Buildozer
+        run: |
+          # Указываем Buildozer принимать лицензии SDK автоматически
+          yes | buildozer android debug
+        env:
+          # Отключаем изоляцию сборки для корректной работы pyjnius
+          PIP_NO_BUILD_ISOLATION: 0
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: package
-          path: ${{ steps.buildozer.outputs.filename }}
+          name: WorkTimer-APK
+          path: bin/*.apk

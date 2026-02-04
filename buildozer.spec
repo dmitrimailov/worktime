@@ -37,7 +37,7 @@ version = 1.0.0
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3, kivy==2.3.0, https://github.com/kivymd/KivyMD/archive/master.zip, pyjnius==1.6.1, Cython==0.29.36, sdl2, hostpython3, materialyoucolor, exceptiongroup, asyncgui, asynckivy, pillow
+requirements = python3,kivy==2.3.0,https://github.com/kivymd/KivyMD/archive/master.zip,requests,packaging,materialyoucolor,pillow,exceptiongroup,asyncgui,asynckivy
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -95,7 +95,7 @@ fullscreen = 0
 
 # (list) Permissions
 # (See https://python-for-android.readthedocs.io/en/latest/buildoptions/#build-options-1 for all the supported syntaxes and properties)
-android.permissions = INTERNET, WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE
+android.permissions = INTERNET
 
 # (list) features (adds uses-feature -tags to manifest)
 #android.features = android.hardware.usb.host
@@ -119,10 +119,10 @@ android.api = 33
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-android.ndk_path = /home/dima/android_tools/android-ndk-r25b
+#android.ndk_path =
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
-android.sdk_path = /home/dima/android_tools/sdk
+#android.sdk_path =
 
 # (str) ANT directory (if empty, it will be automatically downloaded.)
 #android.ant_path =
@@ -351,7 +351,7 @@ p4a.branch = master
 # (str) extra command line arguments to pass when invoking pythonforandroid.toolchain
 #p4a.extra_args =
 p4a.env_vars = PIP_NO_BUILD_ISOLATION=0
-
+p4a.extra_args =
 
 
 #

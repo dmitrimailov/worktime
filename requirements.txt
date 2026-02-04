@@ -3,7 +3,6 @@ kivy==2.3.0
 https://github.com/kivymd/KivyMD/archive/master.zip
 requests
 packaging
-buildozer
 # Зависимости для KivyMD 2.0.1+
 materialyoucolor
 pillow

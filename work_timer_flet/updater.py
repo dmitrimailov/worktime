@@ -34,13 +34,16 @@ class Updater:
 
             if parse_version(remote_version_str) > parse_version(self.current_version):
                 print(f"Доступна новая версия: {remote_version_str}")
-                # Поскольку мы в другом потоке, для обновления UI нужно использовать page.run()
-                self.page.run(self.show_update_dialog, remote_version_str, apk_url)
+                # Показываем диалог обновления только на Android
+                if self.page.platform == "android":
+                    self.page.run_task(self.show_update_dialog, remote_version_str, apk_url)
+                else:
+                    print("Обновление доступно, но автоматическая установка поддерживается только на Android.")
 
         except Exception as e:
             print(f"Ошибка при проверке обновлений: {e}")
 
-    def show_update_dialog(self, new_version, apk_url):
+    async def show_update_dialog(self, new_version, apk_url):
         """Показывает диалог обновления."""
         self.progress_ring = ft.ProgressRing()
         self.progress_text = ft.Text()
@@ -88,26 +91,26 @@ class Updater:
                         f.write(chunk)
             
             print(f"Файл успешно скачан: {download_path}")
-            self.page.run(self.launch_installer, str(download_path))
+            self.page.run_task(self.launch_installer, str(download_path))
 
         except Exception as e:
             print(f"Ошибка при скачивании или установке: {e}")
-            self.page.run(self.download_failed)
+            self.page.run_task(self.download_failed)
 
-    def launch_installer(self, file_path):
+    async def launch_installer(self, file_path):
         """Запускает системный установщик."""
         self.progress_text.value = "Запуск установщика..."
         self.page.update()
-        self.page.launch_url(f"file://{file_path}")
-        self.close_dialog()
+        await self.page.launch_url(f"file://{file_path}")
+        await self.close_dialog()
 
-    def download_failed(self):
+    async def download_failed(self):
         self.progress_text.value = "Ошибка скачивания!"
         self.progress_ring.visible = False
         self.update_dialog.actions[0].disabled = False
         self.page.update()
 
-    def close_dialog(self, e=None):
+    async def close_dialog(self, e=None):
         if self.update_dialog:
             self.update_dialog.open = False
             self.page.update()

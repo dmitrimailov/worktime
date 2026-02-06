@@ -1,3 +1,7 @@
+requires:
+  - requests
+  - packaging
+
 manifest:
   uses-permission:
     - android.permission.INTERNET

@@ -1,0 +1,4 @@
+manifest:
+  uses-permission:
+    - android.permission.INTERNET
+    - android.permission.REQUEST_INSTALL_PACKAGES

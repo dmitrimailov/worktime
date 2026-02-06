@@ -42,6 +42,7 @@ class HistoryView(ft.Column):
                 ft.DataColumn(ft.Text("Уход")),
                 ft.DataColumn(ft.Text("Часы"), numeric=True),
             ],
+            column_spacing=20, # Уменьшаем расстояние между колонками
             rows=[],
         )
 
@@ -78,6 +79,7 @@ class HistoryView(ft.Column):
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             visible=False,
             expand=True,
+            padding=ft.Padding.only(bottom=15), # Добавляем отступ снизу
         )
 
         self.controls = [

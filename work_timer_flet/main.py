@@ -1,8 +1,10 @@
 import flet as ft
 from datetime import datetime
+import json
 
 # Импортируем наши классы-экраны
 from database_manager import DatabaseManager
+from updater import Updater
 from views.main_view import MainView
 from views.add_edit_view import AddEditView
 from views.history_view import HistoryView
@@ -10,12 +12,22 @@ from views.settings_view import SettingsView
 
 def main(page: ft.Page):
     # 1. Настраиваем окно
-    page.title = "Work Timer"
+    try:
+        with open('version.json', 'r') as f:
+            app_version = json.load(f).get("version", "1.0.0")
+    except:
+        app_version = "1.0.0"
+
+    page.title = f"Work Timer v{app_version}"
     page.appbar = ft.AppBar(title=ft.Text("Work Timer"), center_title=True)
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER # Центрируем все содержимое по горизонтали
 
     # Инициализируем менеджер БД и сохраняем его в объекте страницы
     page.db_manager = DatabaseManager(db_name="work_time_flet.db")
+
+    # Запускаем проверку обновлений
+    updater = Updater(page, app_version)
+    updater.check_for_updates()
 
     # 2. Функция для переключения экранов
     def switch_screen(screen_widget):

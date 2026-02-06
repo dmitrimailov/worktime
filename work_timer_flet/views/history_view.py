@@ -68,15 +68,17 @@ class HistoryView(ft.Column):
         )
 
         # 2. Контейнер для отображения отчета (изначально скрыт)
-        self.report_container = ft.Column(
-            [
-                # Оборачиваем таблицу в Column, чтобы она корректно расширялась и скроллилась
-                ft.Column([self.entries_table], scroll=ft.ScrollMode.ADAPTIVE, expand=True),
-                ft.Divider(),
-                self.summary_text,
-                ft.OutlinedButton("Назад к выбору", icon="arrow_back", on_click=self.show_selection),
-            ],
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        self.report_container = ft.Container(
+            content=ft.Column(
+                [
+                    # Оборачиваем таблицу в Column, чтобы она корректно расширялась и скроллилась
+                    ft.Column([self.entries_table], scroll=ft.ScrollMode.ADAPTIVE, expand=True),
+                    ft.Divider(),
+                    self.summary_text,
+                    ft.OutlinedButton("Назад к выбору", icon="arrow_back", on_click=self.show_selection),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
             visible=False,
             expand=True,
             padding=ft.Padding.only(bottom=15), # Добавляем отступ снизу

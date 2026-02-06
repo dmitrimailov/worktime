@@ -2,6 +2,7 @@ import flet as ft
 from datetime import datetime
 
 # Импортируем наши классы-экраны
+from database_manager import DatabaseManager
 from views.main_view import MainView
 from views.add_edit_view import AddEditView
 from views.history_view import HistoryView
@@ -12,6 +13,9 @@ def main(page: ft.Page):
     page.title = "Work Timer"
     page.appbar = ft.AppBar(title=ft.Text("Work Timer"), center_title=True)
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER # Центрируем все содержимое по горизонтали
+
+    # Инициализируем менеджер БД и сохраняем его в объекте страницы
+    page.db_manager = DatabaseManager(db_name="work_time_flet.db")
 
     # 2. Функция для переключения экранов
     def switch_screen(screen_widget):
@@ -30,7 +34,7 @@ def main(page: ft.Page):
     screens = {
         "main": MainView(switch_screen),
         "add_edit": AddEditView(switch_screen),
-        "history": HistoryView(switch_screen, datetime.now().year, datetime.now().month),
+        "history": HistoryView(switch_screen),
         "settings": SettingsView(switch_screen),
     }
 

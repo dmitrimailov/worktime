@@ -6,7 +6,7 @@ class MainView(ft.Column):
     def __init__(self, switch_screen_func):
         super().__init__()
         self.switch_screen = switch_screen_func
-        self.appbar_title = "Work Timer" # Заголовок для этого экрана
+        self.appbar_title = "Work Timer" # Устанавливаем временный заголовок
         self.screens = {}
 
         # Настройки отображения
@@ -52,6 +52,10 @@ class MainView(ft.Column):
         if self.page.platform not in [ft.PagePlatform.WINDOWS, ft.PagePlatform.MACOS, ft.PagePlatform.LINUX]:
             self.exit_button.visible = False
             self.update()
+
+        # Устанавливаем правильный заголовок при монтировании
+        from main import APP_VERSION
+        self.appbar_title = f"Work Timer v{APP_VERSION}"
 
     def set_screens(self, screens):
         self.screens = screens

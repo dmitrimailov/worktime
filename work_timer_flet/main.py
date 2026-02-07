@@ -10,23 +10,19 @@ from views.add_edit_view import AddEditView
 from views.history_view import HistoryView
 from views.settings_view import SettingsView
 
+APP_VERSION = "1.0.1" # --- ГЛАВНАЯ ВЕРСИЯ ПРИЛОЖЕНИЯ ---
+
 def main(page: ft.Page):
     # 1. Настраиваем окно
-    try:
-        with open('version.json', 'r') as f:
-            app_version = json.load(f).get("version", "1.0.0")
-    except:
-        app_version = "1.0.0"
-
-    page.title = f"Work Timer v{app_version}"
-    page.appbar = ft.AppBar(title=ft.Text("Work Timer"), center_title=True)
+    page.title = "Work Timer" # Заголовок окна, не виден на Android
+    page.appbar = ft.AppBar(title=ft.Text(f"Work Timer v{APP_VERSION}"), center_title=True)
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER # Центрируем все содержимое по горизонтали
 
     # Инициализируем менеджер БД и сохраняем его в объекте страницы
     page.db_manager = DatabaseManager(db_name="work_time_flet.db")
 
     # Запускаем проверку обновлений
-    updater = Updater(page, app_version)
+    updater = Updater(page, APP_VERSION)
     updater.check_for_updates()
 
     # 2. Функция для переключения экранов

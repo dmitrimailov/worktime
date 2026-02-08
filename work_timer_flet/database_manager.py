@@ -2,17 +2,22 @@
 
 import sqlite3
 from datetime import datetime
+import os
 
 class DatabaseManager:
     """
     Класс для управления всеми операциями с базой данных SQLite.
     """
-    def __init__(self, db_name="work_time_flet.db"):
+    def __init__(self, db_name):
         """
         Инициализирует менеджер и создает таблицу, если она не существует.
         """
-        self.db_name = db_name
-        self._init_db()
+        db_dir = os.path.dirname(db_name)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir)
+
+        self.conn = sqlite3.connect(db_name, check_same_thread=False)
+        self.create_tables()
 
     def _get_connection(self):
         """Возвращает соединение с базой данных."""

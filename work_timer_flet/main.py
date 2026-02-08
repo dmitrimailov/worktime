@@ -1,6 +1,7 @@
 import flet as ft
 from datetime import datetime
 import json
+import os
 
 # Импортируем наши классы-экраны
 from database_manager import DatabaseManager
@@ -18,8 +19,10 @@ def main(page: ft.Page):
     page.appbar = ft.AppBar(title=ft.Text(f"Work Timer v{APP_VERSION}"), center_title=True)
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER # Центрируем все содержимое по горизонтали
 
-    # Инициализируем менеджер БД и сохраняем его в объекте страницы
-    page.db_manager = DatabaseManager(db_name="work_time_flet.db")
+   # Используем системную папку данных приложения
+    db_path = os.path.join(page.data_dir, "work_time_flet.db")
+    page.db_manager = DatabaseManager(db_name=db_path)
+
 
     # Запускаем проверку обновлений
     updater = Updater(page, APP_VERSION)

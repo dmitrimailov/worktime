@@ -16,20 +16,10 @@ class DatabaseManager:
         if db_dir and not os.path.exists(db_dir):
             os.makedirs(db_dir)
 
+        self.db_name = db_name
         self.conn = sqlite3.connect(db_name, check_same_thread=False)
-        self.create_tables()
-
-    def _get_connection(self):
-        """Возвращает соединение с базой данных."""
-        conn = sqlite3.connect(self.db_name)
-        # Этот курсор будет возвращать строки в виде словарей, что удобнее
-        conn.row_factory = sqlite3.Row
-        return conn
-
-    def _init_db(self):
-        """Создает основную таблицу для хранения записей о рабочем времени."""
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        self.conn.row_factory = sqlite3.Row # Возвращаем строки как словари
+        cursor = self.conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS work_entries (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,7 +28,7 @@ class DatabaseManager:
                 comment TEXT
             )
         """)
-
+        
         # --- Миграция: Проверяем и удаляем старый столбец duration_minutes ---
         cursor.execute("PRAGMA table_info(work_entries)")
         columns = [row['name'] for row in cursor.fetchall()]
@@ -78,8 +68,7 @@ class DatabaseManager:
                 value TEXT
             )
         """)
-        conn.commit()
-        conn.close()
+        # self.conn.commit() # 'with' будет делать это автоматически
 
     def add_or_update_entry(self, start_time_str, end_time_str, comment=""):
         """
@@ -90,32 +79,30 @@ class DatabaseManager:
         end_dt = datetime.fromisoformat(end_time_str)
         entry_date = start_dt.date().isoformat()
 
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        with self.conn:
+            cursor = self.conn.cursor()
 
-        # 1. Проверяем, есть ли запись для этой даты
-        cursor.execute("SELECT id FROM work_entries WHERE date(start_time) = ?", (entry_date,))
-        existing_entry = cursor.fetchone()
+            # 1. Проверяем, есть ли запись для этой даты
+            cursor.execute("SELECT id FROM work_entries WHERE date(start_time) = ?", (entry_date,))
+            existing_entry = cursor.fetchone()
 
-        if existing_entry:
-            # 2. Если есть - обновляем её
-            entry_id = existing_entry['id']
-            cursor.execute(
-                """
-                UPDATE work_entries 
-                SET start_time = ?, end_time = ?, comment = ?
-                WHERE id = ?
-                """,
-                (start_time_str, end_time_str, comment, entry_id)
-            )
-        else:
-            # 3. Если нет - добавляем новую
-            cursor.execute(
-                "INSERT INTO work_entries (start_time, end_time, comment) VALUES (?, ?, ?)",
-                (start_time_str, end_time_str, comment)
-            )
-        conn.commit()
-        conn.close()
+            if existing_entry:
+                # 2. Если есть - обновляем её
+                entry_id = existing_entry['id']
+                cursor.execute(
+                    """
+                    UPDATE work_entries 
+                    SET start_time = ?, end_time = ?, comment = ?
+                    WHERE id = ?
+                    """,
+                    (start_time_str, end_time_str, comment, entry_id)
+                )
+            else:
+                # 3. Если нет - добавляем новую
+                cursor.execute(
+                    "INSERT INTO work_entries (start_time, end_time, comment) VALUES (?, ?, ?)",
+                    (start_time_str, end_time_str, comment)
+                )
 
     def get_entry_by_date(self, entry_date):
         """
@@ -123,12 +110,10 @@ class DatabaseManager:
         :param entry_date: дата в виде объекта datetime.date
         :return: словарь с данными записи или None, если запись не найдена.
         """
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         # Используем функцию date() из SQLite для сравнения только дат
         cursor.execute("SELECT * FROM work_entries WHERE date(start_time) = ?", (entry_date.isoformat(),))
         entry = cursor.fetchone()
-        conn.close()
         return entry
 
     def delete_entry_by_date(self, entry_date):
@@ -136,32 +121,26 @@ class DatabaseManager:
         Удаляет запись за указанную дату.
         :param entry_date: дата в виде объекта datetime.date
         """
-        conn = self._get_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM work_entries WHERE date(start_time) = ?", (entry_date.isoformat(),))
-        conn.commit()
-        conn.close()
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("DELETE FROM work_entries WHERE date(start_time) = ?", (entry_date.isoformat(),))
 
     def get_all_entries(self):
         """Возвращает все записи из базы данных, отсортированные по дате."""
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM work_entries ORDER BY start_time ASC")
         entries = cursor.fetchall()
-        conn.close()
         return entries
 
     def get_entries_for_month(self, year, month):
         """Возвращает все записи за указанный месяц и год, отсортированные по дате."""
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         # Используем strftime для извлечения года и месяца из текстового поля даты
         cursor.execute(
             "SELECT * FROM work_entries WHERE strftime('%Y', start_time) = ? AND strftime('%m', start_time) = ? ORDER BY start_time ASC",
             (str(year), f"{month:02d}")
         )
         entries = cursor.fetchall()
-        conn.close()
         return entries
 
     def get_settings_for_month(self, year, month):
@@ -169,8 +148,7 @@ class DatabaseManager:
         Возвращает часовую ставку и аванс для указанного месяца. 
         Ставка наследуется с предыдущих месяцев, аванс - нет.
         """
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
 
         # 1. Получаем аванс ТОЛЬКО для этого месяца. Если его нет, аванс равен 0.
         cursor.execute("SELECT advance FROM monthly_settings WHERE year = ? AND month = ?", (year, month))
@@ -190,40 +168,32 @@ class DatabaseManager:
         rate_row = cursor.fetchone()
         hourly_rate = rate_row['hourly_rate'] if rate_row else 0.0
         
-        conn.close()
-        
         return {"hourly_rate": hourly_rate, "advance": advance}
 
     def save_settings_for_month(self, year, month, hourly_rate, advance):
         """Сохраняет или обновляет настройки для указанного месяца."""
-        conn = self._get_connection()
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            INSERT INTO monthly_settings (year, month, hourly_rate, advance) 
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(year, month) DO UPDATE SET
-            hourly_rate=excluded.hourly_rate,
-            advance=excluded.advance
-            """,
-            (year, month, hourly_rate, advance)
-        )
-        conn.commit()
-        conn.close()
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO monthly_settings (year, month, hourly_rate, advance) 
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(year, month) DO UPDATE SET
+                hourly_rate=excluded.hourly_rate,
+                advance=excluded.advance
+                """,
+                (year, month, hourly_rate, advance)
+            )
 
     def get_global_setting(self, key, default=None):
         """Возвращает значение глобальной настройки."""
-        conn = self._get_connection()
-        cursor = conn.cursor()
+        cursor = self.conn.cursor()
         cursor.execute("SELECT value FROM global_settings WHERE key = ?", (key,))
         result = cursor.fetchone()
-        conn.close()
         return result['value'] if result else default
 
     def set_global_setting(self, key, value):
         """Сохраняет или обновляет глобальную настройку."""
-        conn = self._get_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES (?, ?)", (key, str(value)))
-        conn.commit()
-        conn.close()
+        with self.conn:
+            cursor = self.conn.cursor()
+            cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES (?, ?)", (key, str(value)))

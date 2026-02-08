@@ -9,6 +9,9 @@ requires:
   - packaging
 
 manifest:
+  # Жестко фиксируем ID приложения, чтобы Android всегда распознавал его
+  # и корректно обновлял, не удаляя данные.
+  application-id: com.dmitrimailov.worktimer
   uses-permission:
     - android.permission.INTERNET
     - android.permission.REQUEST_INSTALL_PACKAGES

@@ -60,14 +60,14 @@ class MainView(ft.Column):
     def set_screens(self, screens):
         self.screens = screens
 
-    def go_to_add_edit(self, e):
-        self.switch_screen(self.screens["add_edit"])
+    async def go_to_add_edit(self, e):
+        await self.switch_screen(self.screens["add_edit"])
 
-    def go_to_history(self, e):
-        self.switch_screen(self.screens["history"])
+    async def go_to_history(self, e):
+        await self.switch_screen(self.screens["history"])
 
-    def go_to_settings(self, e):
-        self.switch_screen(self.screens["settings"])
+    async def go_to_settings(self, e):
+        await self.switch_screen(self.screens["settings"])
 
     async def exit_app(self, e):
         # Используем разную логику для разных платформ

@@ -13,7 +13,7 @@ from views.settings_view import SettingsView
 
 APP_VERSION = "1.0.1" # --- ГЛАВНАЯ ВЕРСИЯ ПРИЛОЖЕНИЯ ---
 
-def main(page: ft.Page):
+async def main(page: ft.Page):
     # 1. Настраиваем окно
     page.title = "Work Timer" # Заголовок окна, не виден на Android
     page.appbar = ft.AppBar(title=ft.Text(f"Work Timer v{APP_VERSION}"), center_title=True)
@@ -24,12 +24,12 @@ def main(page: ft.Page):
     page.db_manager = DatabaseManager(db_name=db_path)
 
 
-    # Запускаем проверку обновлений
-    updater = Updater(page, APP_VERSION)
-    updater.check_for_updates()
+    # Создаем экземпляр Updater и добавляем его на страницу как невидимый контрол
+    updater = Updater(APP_VERSION)
+    page.add(updater)
 
     # 2. Функция для переключения экранов
-    def switch_screen(screen_widget):
+    async def switch_screen(screen_widget):
         page.controls.clear()
         page.add(screen_widget)
         # Если у экрана есть метод on_show, вызываем его
@@ -56,7 +56,10 @@ def main(page: ft.Page):
     screens["settings"].set_screens(screens)
 
     # 4. Показываем главный экран при запуске
-    switch_screen(screens["main"])
+    await switch_screen(screens["main"])
+
+    # Запускаем асинхронную проверку обновлений как фоновую задачу
+    page.run_task(updater.check_for_updates)
 
 
 if __name__ == "__main__":

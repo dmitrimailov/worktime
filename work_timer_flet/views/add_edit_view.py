@@ -105,7 +105,7 @@ class AddEditView(ft.Column):
         # Добавляем пикеры в оверлей, если их там еще нет
         if self.date_picker not in self.page.overlay:
             self.page.overlay.extend([self.date_picker, self.start_time_picker, self.end_time_picker])
-        self.page.update() # Обновляем всю страницу
+        self.page.update()
         self.date_picker.open = True
         self.page.update()
 
@@ -142,14 +142,14 @@ class AddEditView(ft.Column):
             self.delete_button.visible = False # Скрываем кнопку "Удалить"
 
         self.form_container.visible = True
-        self.page.update() # Обновляем всю страницу
+        self.page.update()
 
-    def date_picker_dismissed(self, e):
+    async def date_picker_dismissed(self, e):
         """Вызывается при закрытии календаря."""
         # Если календарь закрыли, а дата так и не была выбрана,
         # значит, пользователь нажал "Cancel" при первом входе.
         if not self.selected_date:
-            self.go_to_main(e)
+            await self.go_to_main(e)
 
     def start_time_changed(self, e):
         """Вызывается при нажатии OK, сохраняет значение."""
@@ -163,19 +163,19 @@ class AddEditView(ft.Column):
         """Вызывается при закрытии пикера, обновляет страницу."""
         print("Start Time Picker dismissed")
         # Просто обновляем страницу, чтобы применилось состояние open=False
-        self.page.update() # Обновляем всю страницу
+        self.page.update()
 
     def end_time_dismissed(self, e):
         """Вызывается при закрытии пикера, обновляет страницу."""
         print("End Time Picker dismissed")
-        self.page.update() # Обновляем всю страницу
+        self.page.update()
 
     def open_time_picker(self, picker: ft.TimePicker):
         """Открывает указанный TimePicker."""
         picker.open = True
         self.page.update()
 
-    def save_entry(self, e):
+    async def save_entry(self, e):
         """Обработчик сохранения записи."""
         db_manager = self.page.db_manager
         try:
@@ -187,7 +187,7 @@ class AddEditView(ft.Column):
                 end_time_str=end_str,
                 comment=self.comment_field.value
             )
-            self.go_to_main(e)
+            await self.go_to_main(e)
         except Exception as ex:
             # В будущем здесь можно будет показать диалоговое окно с ошибкой
             print(f"Ошибка сохранения: {ex}")
@@ -195,14 +195,14 @@ class AddEditView(ft.Column):
             self.page.snack_bar.open = True
             self.page.update()
 
-    def delete_entry(self, e):
+    async def delete_entry(self, e):
         """Обработчик удаления записи."""
         if self.selected_date:
             db_manager = self.page.db_manager
             db_manager.delete_entry_by_date(self.selected_date)
             
             # Возвращаемся на главный экран и показываем уведомление
-            self.go_to_main(e)
+            await self.go_to_main(e)
             self.page.snack_bar = ft.SnackBar(ft.Text("Запись удалена!"))
             self.page.snack_bar.open = True
             self.page.update()
@@ -210,7 +210,7 @@ class AddEditView(ft.Column):
     def set_screens(self, screens):
         self.screens = screens
 
-    def go_to_main(self, e):
+    async def go_to_main(self, e):
         # Убираем пикеры из оверлея перед уходом с экрана
         # Это предотвратит "черный экран" при повторном открытии
         if self.date_picker in self.page.overlay:
@@ -218,4 +218,4 @@ class AddEditView(ft.Column):
             self.page.overlay.remove(self.start_time_picker)
             self.page.overlay.remove(self.end_time_picker)
         self.page.update()
-        self.switch_screen(self.screens["main"])
+        await self.switch_screen(self.screens["main"])

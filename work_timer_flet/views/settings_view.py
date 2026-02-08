@@ -95,7 +95,7 @@ class SettingsView(ft.Column):
         self.advance_field.value = str(monthly_settings.get("advance", 0.0))
         self.update()
 
-    def save_settings(self, e):
+    async def save_settings(self, e):
         """Сохраняет настройки из полей ввода."""
         db = self.page.db_manager
         # Сохраняем глобальные
@@ -107,16 +107,16 @@ class SettingsView(ft.Column):
         advance = float(self.advance_field.value or 0)
         db.save_settings_for_month(year, month, hourly_rate, advance)
 
-        # Сначала переходим на главный экран
-        self.go_to_main(e)
-
-        # А уже потом показываем уведомление на главном экране
+        # Показываем уведомление
         self.page.snack_bar = ft.SnackBar(content=ft.Text("Настройки сохранены!"))
         self.page.snack_bar.open = True
         self.page.update()
 
+        # Асинхронно переходим на главный экран
+        await self.go_to_main(e)
+
     def set_screens(self, screens):
         self.screens = screens
 
-    def go_to_main(self, e):
-        self.switch_screen(self.screens["main"])
+    async def go_to_main(self, e):
+        await self.switch_screen(self.screens["main"])

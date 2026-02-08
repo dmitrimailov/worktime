@@ -180,5 +180,5 @@ class HistoryView(ft.Column):
     def set_screens(self, screens):
         self.screens = screens
 
-    def go_to_main(self, e):
-        self.switch_screen(self.screens["main"])
+    async def go_to_main(self, e):
+        await self.switch_screen(self.screens["main"])

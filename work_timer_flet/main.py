@@ -16,17 +16,30 @@ async def main(page: ft.Page):
     # 1. Настраиваем окно
     page.title = "Work Timer" # Заголовок окна, не виден на Android
 
-    # --- Определяем путь к базе данных ---
-    # Этот способ надежно работает и на ПК, и в собранном APK на Android.
-    # Flet устанавливает переменную FLET_APP_DATA_DIR при сборке для Android.
-    app_data_dir = os.getenv("FLET_APP_DATA_DIR")
+    # Регистрируем наш кастомный контрол для установки APK
+    # page.app.add_control_factory("apk_installer", apk_installer_control_factory)
 
-    if app_data_dir:
-        # Если мы в собранном приложении (Android), используем папку данных
-        db_path = os.path.join(app_data_dir, "work_time_flet.db")
-    else:
-        # Если мы запускаем на ПК для разработки, создаем БД в текущей папке
-        db_path = "work_time_flet.db"
+    # --- Определяем путь к базе данных ---
+    # Используем page.client_storage.get("flet.app_path") - это самый надежный
+    # способ получить путь к папке данных приложения на любой платформе.
+    # Flet устанавливает эту переменную при сборке.
+    app_data_dir = os.getenv("FLET_APP_STORAGE_DATA")
+
+    if not app_data_dir:
+        # Если мы на ПК (переменная не установлена), используем текущую папку
+        app_data_dir = "."
+
+    # --- Очистка старого файла обновления ---
+    # При каждом запуске проверяем, не остался ли скачанный APK от прошлого обновления.
+    try:
+        old_apk_path = os.path.join(app_data_dir, "update.apk")
+        if os.path.exists(old_apk_path):
+            os.remove(old_apk_path)
+            print(f"Старый файл обновления удален: {old_apk_path}")
+    except Exception as e:
+        print(f"Не удалось удалить старый файл обновления: {e}")
+
+    db_path = os.path.join(app_data_dir, "work_time_flet.db")
 
     # --- Настраиваем AppBar и отладочную информацию ---
     title_text = f"Work Timer v{APP_VERSION}"

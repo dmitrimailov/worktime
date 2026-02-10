@@ -45,9 +45,9 @@ class Updater(ft.Control):
                 self.update_dialog = ft.AlertDialog(
                     modal=True,
                     title=ft.Text("Доступно обновление!"),
-                    content=ft.Text(f"Обнаружена новая версия: {remote_version_str}.\n\nПерейти на страницу загрузки?"),
+                    content=ft.Text(f"Обнаружена новая версия: {remote_version_str}.\n\nНачать загрузку?"),
                     actions=[
-                        ft.FilledButton("Обновить", on_click=self.handle_start_download),
+                        ft.FilledButton("Загрузить", on_click=self.handle_open_download_url),
                         ft.TextButton("Позже", on_click=self.handle_close_dialog),
                     ],
                     actions_alignment=ft.MainAxisAlignment.END,
@@ -63,54 +63,15 @@ class Updater(ft.Control):
         except Exception as e:
             print(f"Ошибка при проверке обновлений: {e}")
 
-    def handle_start_download(self, e):
-        """Обработчик для кнопки 'Обновить'. Начинает загрузку APK."""
-        # 1. Меняем вид диалогового окна на индикатор загрузки
-        self.update_dialog.actions = [] # Убираем кнопки
-        self.update_dialog.content = ft.Column([
-            ft.Text("Идет загрузка обновления..."),
-            ft.ProgressBar(width=400, color="amber", bgcolor="#eeeeee"),
-        ])
-        self.page.update()
-
-        # 2. Запускаем асинхронную задачу загрузки
-        self.page.run_task(self._download_and_install_task)
-
     def handle_close_dialog(self, e):
         """Обработчик для кнопки 'Позже'."""
-        if self.update_dialog in self.page.overlay:
+        if self.update_dialog:
             self.update_dialog.open = False
             self.page.update()
     
-    async def _download_and_install_task(self):
-        """Асинхронная задача для загрузки и установки APK."""
-        try:
-            # 1. Определяем путь для сохранения файла
-            # Используем FLET_APP_DATA_DIR, так как это гарантированно доступная для записи папка
-            app_data_dir = os.getenv("FLET_APP_DATA_DIR")
-            apk_path = os.path.join(app_data_dir, "update.apk")
-
-            # 2. Скачиваем файл
-            loop = asyncio.get_running_loop()
-            response = await loop.run_in_executor(
-                None, lambda: requests.get(self.apk_direct_url, stream=True, timeout=300)
-            )
-            response.raise_for_status()
-
-            with open(apk_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            
-            print(f"Обновление успешно скачано в: {apk_path}")
-
-            # 3. Запускаем системный установщик
-            await ft.UrlLauncher().launch_url(f"file://{apk_path}")
-
-            # 4. Закрываем диалог после запуска установщика
+    async def handle_open_download_url(self, e):
+        """Обработчик для кнопки 'Загрузить'. Открывает прямую ссылку на APK."""
+        if self.apk_direct_url:
+            await self.page.launch_url(self.apk_direct_url)
+            # Сразу закрываем диалог, так как дальнейшие действия происходят в браузере
             self.handle_close_dialog(None)
-
-        except Exception as e:
-            print(f"Ошибка при загрузке обновления: {e}")
-            self.update_dialog.content = ft.Text(f"Ошибка загрузки:\n{e}", max_lines=3)
-            self.update_dialog.actions = [ft.TextButton("Закрыть", on_click=self.handle_close_dialog)]
-            self.page.update()

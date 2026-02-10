@@ -16,6 +16,6 @@ export $(grep -v '^#' .env | xargs)
 ANDROID_KEYSTORE_PATH="./work-timer-release-key.keystore" \
 ANDROID_KEYSTORE_ALIAS="worktimer_alias" \
 
-flet build apk
+flet build apk --arch arm64-v8a
 
 echo "Сборка завершена."

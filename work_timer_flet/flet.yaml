@@ -1,9 +1,0 @@
-version: 1.0.1+1
-android:
-  package_name: "com.dmitrimailov.worktimer" # Придумай один раз и не меняй
-  permissions:
-    - INTERNET
-    - ACCESS_NETWORK_STATE
-requires:
-  - requests
-  - packaging

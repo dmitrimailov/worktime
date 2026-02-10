@@ -1,8 +1,5 @@
 import flet as ft
-from datetime import datetime
-import json
 import os
-import platform
 import asyncio
 
 # Импортируем наши классы-экраны
@@ -21,22 +18,19 @@ async def main(page: ft.Page):
     page.appbar = ft.AppBar(title=ft.Text(f"Work Timer v{APP_VERSION}"), center_title=True)
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER # Центрируем все содержимое по горизонтали
 
-    # --- Определяем путь к папке данных в зависимости от ОС (надежный способ) ---
-    # 1. Определяем базовую директорию
-    home = os.path.expanduser("~")
+    # --- Определяем путь к базе данных ---
+    # Этот способ надежно работает и на ПК, и в собранном APK на Android.
+    # Flet устанавливает переменную FLET_APP_DATA_DIR при сборке для Android.
+    app_data_dir = os.getenv("FLET_APP_DATA_DIR")
 
-    # 2. Логика выбора пути
-    if page.platform == ft.PagePlatform.ANDROID:
-        # Это Android. Используем корень приватной папки приложения.
-        app_data_dir = home
-    elif platform.system() == "Windows":
-        app_data_dir = os.path.join(os.getenv("APPDATA"), "work_timer_flet")
-    else: # Это Linux или macOS
-        app_data_dir = os.path.join(home, ".local", "share", "work_timer_flet")
+    if app_data_dir:
+        # Если мы в собранном приложении (Android), используем папку данных
+        db_path = os.path.join(app_data_dir, "work_time_flet.db")
+    else:
+        # Если мы запускаем на ПК для разработки, создаем БД в текущей папке
+        db_path = "work_time_flet.db"
 
-    # 3. Безопасно создаем папку и инициализируем БД
-    os.makedirs(app_data_dir, exist_ok=True)
-    db_path = os.path.join(app_data_dir, "work_time_flet.db")
+    print(f"Используемый путь к БД: {db_path}")
     page.db_manager = DatabaseManager(db_name=db_path)
 
 

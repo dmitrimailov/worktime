@@ -15,8 +15,7 @@ export $(grep -v '^#' .env | xargs)
 #    Пароли будут взяты из переменных окружения, которые мы только что установили.
 ANDROID_KEYSTORE_PATH="./work-timer-release-key.keystore" \
 ANDROID_KEYSTORE_ALIAS="worktimer_alias" \
-flet build apk work_timer_flet \
-    --build-version 1.0.1 \
-    --build-number 2
+
+flet build apk
 
 echo "Сборка завершена."

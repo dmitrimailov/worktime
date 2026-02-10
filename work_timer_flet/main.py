@@ -15,8 +15,6 @@ APP_VERSION = "1.0.1" # --- ГЛАВНАЯ ВЕРСИЯ ПРИЛОЖЕНИЯ ---
 async def main(page: ft.Page):
     # 1. Настраиваем окно
     page.title = "Work Timer" # Заголовок окна, не виден на Android
-    page.appbar = ft.AppBar(title=ft.Text(f"Work Timer v{APP_VERSION}"), center_title=True)
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER # Центрируем все содержимое по горизонтали
 
     # --- Определяем путь к базе данных ---
     # Этот способ надежно работает и на ПК, и в собранном APK на Android.
@@ -30,6 +28,27 @@ async def main(page: ft.Page):
         # Если мы запускаем на ПК для разработки, создаем БД в текущей папке
         db_path = "work_time_flet.db"
 
+    # --- Настраиваем AppBar и отладочную информацию ---
+    title_text = f"Work Timer v{APP_VERSION}"
+    
+    # Создаем диалоговое окно для показа пути к БД
+    db_path_dialog = ft.AlertDialog(
+        title=ft.Text("Путь к базе данных"),
+        content=ft.TextField(value=db_path, read_only=True, border=ft.InputBorder.NONE),
+        on_dismiss=lambda e: print("Диалог пути к БД закрыт"),
+    )
+    page.overlay.append(db_path_dialog)
+
+    def show_db_path(e):
+        db_path_dialog.open = True
+        page.update()
+
+    # Создаем заголовок с обработчиком долгого нажатия
+    app_title = ft.Text(title_text, size=16)
+    
+    page.appbar = ft.AppBar(title=ft.GestureDetector(content=app_title, on_long_press=show_db_path), center_title=True)
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER # Центрируем все содержимое по горизонтали
+    
     print(f"Используемый путь к БД: {db_path}")
     page.db_manager = DatabaseManager(db_name=db_path)
 
@@ -47,7 +66,7 @@ async def main(page: ft.Page):
             screen_widget.on_show()
         # Обновляем заголовок в AppBar в зависимости от экрана
         if hasattr(screen_widget, "appbar_title"):
-            page.appbar.title = ft.Text(screen_widget.appbar_title)
+            page.appbar.title.content = ft.Text(screen_widget.appbar_title)
         page.update()
 
     # 3. Создаем экземпляры всех экранов
